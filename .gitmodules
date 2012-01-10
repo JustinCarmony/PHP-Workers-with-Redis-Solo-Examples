@@ -1,0 +1,3 @@
+[submodule "predis"]
+	path = predis
+	url = https://github.com/nrk/predis
