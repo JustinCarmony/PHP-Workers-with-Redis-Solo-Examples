@@ -27,6 +27,9 @@ $predis = new Predis\Client(array(
 $predis->hset('worker.status', $worker_id, 'Started');
 $predis->hset('worker.status.last_time', $worker_id, time());
 
+// Set the time limit for php to 0 seconds
+set_time_limit(0);
+
 /*
  * We'll set our base time, which is one hour (in seconds).
  * Once we have our base time, we'll add anywhere between 0 
@@ -35,9 +38,6 @@ $predis->hset('worker.status.last_time', $worker_id, time());
  */
 $time_limit = 60 * 60 * 1; // Minimum of 1 hour
 $time_limit += rand(0, 60 * 10); // Adding additional time
-
-// Set the time limit for php to 0 seconds
-set_time_limit(0);
 
 // Set the start time
 $start_time = time();
