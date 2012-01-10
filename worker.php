@@ -6,6 +6,11 @@
 
 $worker_id = $argv[1];
 
+if(!$worker_id)
+{
+	$worker_id = rand(100, 999);
+}
+
 echo "Worker [$worker_id] Starting...\n";
 
 require 'config.php';
@@ -20,6 +25,7 @@ $predis = new Predis\Client(array(
 
 // Setting the Worker's Status
 $predis->hset('worker.status', $worker_id, 'Started');
+$predis->hset('worker.status.last_time', $worker_id, time());
 
 /*
  * We'll set our base time, which is one hour (in seconds).
@@ -43,6 +49,7 @@ while(time() < $start_time + $time_limit)
 {
 	// Setting the Worker's Status
 	$predis->hset('worker.status', $worker_id, 'Waiting');
+	$predis->hset('worker.status.last_time', $worker_id, time());
 	
 	// Check to see if there are any items in the queues in
 	// order of priority. If all are empty, wait up to 10 
@@ -55,9 +62,15 @@ while(time() < $start_time + $time_limit)
 	// If a job was pulled out
 	if($job)
 	{
+		/*
+		 * Start Working
+		 * 
+		 * This is where you will use the data from the 
+		 */
 		echo "\nJob Started ";
 		// Setting the Worker's Status
 		$predis->hset('worker.status', $worker_id, 'Working');
+		$predis->hset('worker.status.last_time', $worker_id, time());
 		
 		$queue_name = $job[0]; // 0 is the name of the queue
 		$details = json_decode($job[1]); // parse the json data from the job
@@ -92,5 +105,6 @@ while(time() < $start_time + $time_limit)
 
 // Setting the Worker's Status
 $predis->hset('worker.status', $worker_id, 'Closed');
+$predis->hset('worker.status.last_time', $worker_id, time());
 
 echo "\n\nWorker [$worker_id] Finished! \nGoodbye...\n";
